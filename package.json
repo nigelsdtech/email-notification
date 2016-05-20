@@ -1,0 +1,29 @@
+{
+  "name": "fired-trigger-check",
+  "version": "1.0.0",
+  "description": "You want to check that some sort of trigger has fired. For example, a certain email has been received that causes your app to run a script.",
+  "main": "FiredTriggerCheck.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nigelsdtech/fired-trigger-check.git"
+  },
+  "keywords": [
+    "trigger",
+    "fired",
+    "email",
+    "notification"
+  ],
+  "author": "Nigel Stephen D'Souza",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nigelsdtech/fired-trigger-check/issues"
+  },
+  "homepage": "https://github.com/nigelsdtech/fired-trigger-check#readme",
+  "dependencies": {
+    "gmail-model": "github:nigelsdtech/gmail-model",
+    "log4js": "^0.6.x"
+  }
+}
