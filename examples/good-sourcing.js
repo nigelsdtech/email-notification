@@ -1,13 +1,13 @@
 console.log('Example of good usage')
 console.log('====================')
 
-const EmailTrigger = require('../FiredTriggerCheck.js').email
+var Email = require('../FiredTriggerCheck.js');
 
-var trigger = new EmailTrigger('hey')
+var email = new Email('Hello')
 
-//console.log(trigger)
+email.sayHello()
 
-//console.log(EmailTrigger.sayHello)
+
 
 console.log('====================')
 console.log('End')

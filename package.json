@@ -1,8 +1,8 @@
 {
   "name": "fired-trigger-check",
   "version": "1.0.0",
-  "description": "You want to check that some sort of trigger has fired. For example, a certain email has been received that causes your app to run a script.",
-  "main": "FiredTriggerCheck.js",
+  "description": "You want to check that you've received a certain notification email.",
+  "main": "EmailNotification.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
