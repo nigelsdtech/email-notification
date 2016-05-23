@@ -1,12 +1,15 @@
 'use strict';
 
+const gmailModel = require('gmail-model');
+
 /**
  * A module for checking that a notification email has been received.
  * @module email
  */
 
 // Some object variables
-var _gmailSearchCriteria,
+var _gmail,
+    _gmailSearchCriteria,
     _message,
     _messageId,
     _processedLabelId,
@@ -22,6 +25,21 @@ function EmailNotification(params) {
   this._gmailSearchCriteria = params.gmailSearchCriteria
   this._processedLabelName  = params.processedLabelName
 
+  // Setup the google calendar
+
+  var gmailParams = {
+    name             : params.gmail.mailbox.name,
+    userId           : params.gmail.mailbox.userId,
+    googleScopes     : params.gmail.auth.scopes,
+    tokenFile        : params.gmail.auth.tokenFile,
+    tokenDir         : params.gmail.auth.tokenFileDir,
+    clientSecretFile : params.gmail.auth.clientSecretFile,
+    log4js           : params.log4js,
+    logLevel         : params.log.level
+  }
+
+
+  this._gmail = new gmailModel(gmailParams);
 }
 
 
@@ -62,7 +80,7 @@ method.finishProcessing = function(params, callback) {
 
   if (doUpdate) {
 
-    gmail.updateMessage(params, function (err, message) {
+    self._gmail.updateMessage(params, function (err, message) {
       if (err) {
         callback(err)
         return null
@@ -90,7 +108,7 @@ method.hasBeenProcessed = function(params, callback) {
   var self = this
 
   // Get the message 
-  self.getEmail(function (message) {
+  self.getMessage(function (message) {
 
     // And get the processed labelId
     self.getLabelId(function (err, labelId) {
@@ -132,7 +150,7 @@ method.hasBeenReceived = function(params, callback) {
   // Look for the notification
   var self = this
 
-  gmail.listMessages({
+  self._gmail.listMessages({
     freetextSearch: self._gmailSearchCriteria,
     maxResults: 1
   }, function (messages) {
@@ -151,25 +169,25 @@ method.hasBeenReceived = function(params, callback) {
 
 
 /**
- * emailNotification.getEmail
+ * emailNotification.getMessage
  *
  * @desc Get the gmail message
  *
- * @alias emailNotification.getEmail
+ * @alias emailNotification.getMessage
  * @memberOf! emailNotification(v1)
  *
  * @param  {object=} params - Parameters for request (currently unused)
  * @param  {callback} callback - The callback that handles the response. Returns callback(error,message (object))
  * @return {string} message - The gmail message resource
  */
-method.getEmail = function(params, callback) {
+method.getMessage = function(params, callback) {
 
   var self = this
 
   // Get the label ID
   if (typeof self._message === 'undefined') {
 
-    gmail.getMessage({
+    self._gmail.getMessage({
       messageId: messageId
     }, function (message) {
 
@@ -177,7 +195,7 @@ method.getEmail = function(params, callback) {
       self._message = message;
       callback(null, message)
 
-    })
+    });
 
   } else {
     // It has already been retrieved and stored locally.
@@ -194,7 +212,7 @@ method.getEmail = function(params, callback) {
  * @alias emailNotification.getProcessedLabelId
  * @memberOf! emailNotification(v1)
  *
- * @param  {object=} params - Parameters for request
+ * @param  {object=} params - Parameters for request (currently unused)
  * @param  {callback} callback - The callback that handles the response. Returns callback(error,labelId (string))
  * @return {string} labelId - The gmail label Id
  */
@@ -206,8 +224,8 @@ method.getProcessedLabelId = function(params, callback) {
   if (typeof self._processedLabelId === 'undefined') {
 
     // It hasn't been saved yet. Get it from google.
-    gmail.getLabelId({
-      labelName: self._processedLabel,
+    self._gmail.getLabelId({
+      labelName: self._processedLabelName,
       createIfNotExists: true
     }, function (err,labelId) {
 
@@ -218,8 +236,8 @@ method.getProcessedLabelId = function(params, callback) {
 
       // Store the retrieved label Id
       self._processedLabelId = labelId;
-      callback(null, _processedLabelId)
-    }
+      callback(null, self._processedLabelId)
+    });
 
   } else {
     // It has already been retrieved and stored locally.

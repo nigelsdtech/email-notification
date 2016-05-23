@@ -4,7 +4,7 @@
   "description": "You want to check that you've received a certain notification email.",
   "main": "EmailNotification.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "mocha test/tests.js"
   },
   "repository": {
     "type": "git",
@@ -23,11 +23,16 @@
   },
   "homepage": "https://github.com/nigelsdtech/email-notification#readme",
   "dependencies": {
-    "gmail-model": "github:nigelsdtech/gmail-model",
+    "gmail-model": "git://github.com/nigelsdtech/gmail-model.git#65d2ada01e60ea5a58d25d1d910e5fda0e8d725c",
     "log4js": "^0.6.x"
   },
   "devDependencies": {
-    "chai": "~3.5.0",
-    "mocha": "~2.5.1"
+    "chai": "3.5.0",
+    "mocha": "2.5.1",
+    "sinon": "1.17.4"
+  },
+  "config": {
+    "appName": "email-notification",
+    "googleAuthScopes": "https://www.googleapis.com/auth/gmail.modify"
   }
 }
