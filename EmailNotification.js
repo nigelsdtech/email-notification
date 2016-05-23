@@ -7,9 +7,10 @@
 
 // Some object variables
 var _gmailSearchCriteria,
-    _labelId,
     _message,
-    _processedLabelName
+    _messageId,
+    _processedLabelId,
+    _processedLabelName;
 
 /**
  * Email Notification constructor.
@@ -28,38 +29,49 @@ var method = EmailNotification.prototype;
 
 
 /**
- * emailNotification.hasBeenReceived
+ * emailNotification.finishProcessing
  *
- * @desc Checks that an email has been received. Doesn't actually retrieve/open the email.
+ * @desc Finish off processing by applying the processed label to the email and/or marking it as read
  *
- * @alias emailNotification.hasBeenRecieved
+ * @alias emailNotification.finishProcessing
  * @memberOf! emailNotification(v1)
  *
- * @param  {object=} params - Parameters for request (none currently supported)
- * @param  {callback} cb - The callback that handles the response. Returns callback(error,hasBeenReceived (boolean))
- * @return {boolean} hasBeenReceived - Indicates whether or not the notification has been received
+ * @param  {object=} params - Parameters for request
+ * @param  {boolean} applyProcessedLabel
+ * @param  {boolean} markAsRead
+ * @param  {callback} callback - The callback that handles the response. Returns callback(error,isUpdateRequired)
+ * @return {boolean} isUpdateRequired - Indicates whether or not an update was required to have been sent to gmail
  */
-method.hasBeenReceived = function(params, cb) {
+method.finishProcessing = function(params, callback) {
 
-  // Look for the notification
   var self = this
 
-  gmail.listMessages({
-    freetextSearch: self._gmailSearchCriteria,
-    maxResults: 1
-  }, function (messages) {
+  var params = {}
+  var doUpdate = false;
 
-    if (messages.length == 1) {
-      self._message = messages[0]
-      callback(null, true)
-      return null
-    } else {
-      callback(null, false)
-      return null
-    }
+  if (params.applyProcessedLabel) {
+    params.addLabelIds = [self._processedLabelId]
+    doUpdate = true
+  }
+  if (params.markAsRead) {
+    params.removeLabelIds = ['UNREAD']
+    doUpdate = true
+  }
 
-  });
+  params.messageId = self._messageId
+
+  if (doUpdate) {
+
+    gmail.updateMessage(params, function (err, message) {
+      if (err) {
+        callback(err)
+        return null
+      }
+    });
+
+  }
 }
+
 
 /**
  * emailNotification.hasBeenProcessed
@@ -70,100 +82,151 @@ method.hasBeenReceived = function(params, cb) {
  * @memberOf! emailNotification(v1)
  *
  * @param  {object=} params - Parameters for request (none currently supported)
- * @param  {callback} cb - The callback that handles the response. Returns callback(error,hasBeenProcessed (boolean))
+ * @param  {callback} callback - The callback that handles the response. Returns callback(error,hasBeenProcessed (boolean))
  * @return {boolean} hasBeenProcessed - Indicates whether or not the notification has already been processed
  */
-method.hasBeenProcessed = function(params, cb) {
+method.hasBeenProcessed = function(params, callback) {
 
   var self = this
 
+  // Get the message 
+  self.getEmail(function (message) {
 
-  function checkForLabel (cb) {
-
-    if (this._message)
-  }
-
-
-  // Get the label ID
-  if (typeof _labelId === 'undefined') {
-
-    // It hasn't been saved yet. Get it from google.
-
-    gmail.getLabelId({
-      labelName: emailProcessedLabel,
-      createIfNotExists: true
-    }, function (err,labelId) {
+    // And get the processed labelId
+    self.getLabelId(function (err, labelId) {
 
       if (err) {
-        callback(new Error(err))
+        callback(err)
         return null
       }
 
-      // Store the processed label Id
-      self._labelId = labelId;
+      // Check if this message has already been processed
+      if (message.labelIds.indexOf(labelId) != -1) {
+        callback(null,true)
+        return null
+      } else {
+        callback(null,false)
+        return null
+      }
+
+    });
+  });
+
+}
+
+
+/**
+ * emailNotification.hasBeenReceived
+ *
+ * @desc Checks that an email has been received. Doesn't actually retrieve/open the email.
+ *
+ * @alias emailNotification.hasBeenRecieved
+ * @memberOf! emailNotification(v1)
+ *
+ * @param  {object=} params - Parameters for request (none currently supported)
+ * @param  {callback} callback - The callback that handles the response. Returns callback(error,hasBeenReceived (boolean))
+ * @return {boolean} hasBeenReceived - Indicates whether or not the notification has been received
+ */
+method.hasBeenReceived = function(params, callback) {
+
+  // Look for the notification
+  var self = this
+
+  gmail.listMessages({
+    freetextSearch: self._gmailSearchCriteria,
+    maxResults: 1
+  }, function (messages) {
+
+    if (messages.length == 1) {
+      self._messageId = messages[0].id
+      callback(null, true)
+      return null
+    } else {
+      callback(null, false)
+      return null
     }
 
+  });
+}
+
+
+/**
+ * emailNotification.getEmail
+ *
+ * @desc Get the gmail message
+ *
+ * @alias emailNotification.getEmail
+ * @memberOf! emailNotification(v1)
+ *
+ * @param  {object=} params - Parameters for request (currently unused)
+ * @param  {callback} callback - The callback that handles the response. Returns callback(error,message (object))
+ * @return {string} message - The gmail message resource
+ */
+method.getEmail = function(params, callback) {
+
+  var self = this
+
+  // Get the label ID
+  if (typeof self._message === 'undefined') {
+
+    gmail.getMessage({
+      messageId: messageId
+    }, function (message) {
+
+      // Store the retrieved message
+      self._message = message;
+      callback(null, message)
+
+    })
+
+  } else {
+    // It has already been retrieved and stored locally.
+    callback(null, self._message)
   }
 
 }
 
 /**
- * emailNotification.get
+ * emailNotification.getProcessedLabelId
  *
- * @desc Gets the notification email.
+ * @desc Get the gmail label ID for the specified label
  *
- * @alias emailNotification.get
+ * @alias emailNotification.getProcessedLabelId
  * @memberOf! emailNotification(v1)
  *
- * @param  {object=} params - Parameters for request (none currently supported)
- * @param  {callback} cb - The callback that handles the response. Returns callback(error,message)
- * @return {object} message - gmail API message object
+ * @param  {object=} params - Parameters for request
+ * @param  {callback} callback - The callback that handles the response. Returns callback(error,labelId (string))
+ * @return {string} labelId - The gmail label Id
  */
-method.get = function(params, cb) {
+method.getProcessedLabelId = function(params, callback) {
 
-    notificationMessageId = this._message.id;
+  var self = this
 
-    var isNotified,
-        isProcessed;
+  // Get the label ID
+  if (typeof self._processedLabelId === 'undefined') {
 
-    if (applyLabelToProcessedEmail || markEmailAsRead) {
-      gmail.getMessage({
-        messageId: messageId
-      }, function (message) {
+    // It hasn't been saved yet. Get it from google.
+    gmail.getLabelId({
+      labelName: self._processedLabel,
+      createIfNotExists: true
+    }, function (err,labelId) {
 
-        log.trace('Message:')
+      if (err) {
+        callback(err)
+        return null
+      }
 
-        var parts = message.payload.parts
-        log.trace('Message: ' + JSON.stringify(parts))
+      // Store the retrieved label Id
+      self._processedLabelId = labelId;
+      callback(null, _processedLabelId)
+    }
 
-        // If the message has already been processed we take a quick
-        // return and tell the program to go no further.
-        if (applyLabelToProcessedEmail) {
+  } else {
+    // It has already been retrieved and stored locally.
+    callback(null, self._processedLabelId)
+  }
 
+}
 
-            // Check if this message has already been processed
-            if (message.labelIds.indexOf(labelId) != -1) {
-              log.info('Notification email already processed. Going no further')
-              isNotified = null,
-              isProcessed = true
-              callback(null,isNotified,isProcessed)
-              return null
-            } else {
-              log.debug('Label %s not applied', labelId);
-              isNotified = true
-              isProcessed = false
-              callback(null,isNotified,isProcessed)
-              return null
-            }
-          })
-        } else {
-          isNotified = true
-          isProcessed = false
-          callback(null,isNotified,isProcessed)
-        }
-
-      });
-
-};
 
 module.exports = EmailNotification;
