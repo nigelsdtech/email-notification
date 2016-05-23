@@ -12,15 +12,15 @@ var hello = "default"
  * @param {object} params Params to be passed in
  * @constructor
  */
-function FiredTriggerCheck(h) {
+function EmailNotification(h) {
 
   console.log('Invoking email constructor with - ' + h)
   this.hello = h
 
 }
 
-FiredTriggerCheck.prototype.sayHello = function() {
+EmailNotification.prototype.sayHello = function() {
   console.log('SteveFlag say %s', this.hello)
 }
   
-module.exports = FiredTriggerCheck;
+module.exports = EmailNotification;

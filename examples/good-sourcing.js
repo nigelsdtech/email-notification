@@ -1,7 +1,7 @@
 console.log('Example of good usage')
 console.log('====================')
 
-var Email = require('../FiredTriggerCheck.js');
+var Email = require('../EmailNotification.js');
 
 var email = new Email('Hello')
 

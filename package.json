@@ -1,5 +1,5 @@
 {
-  "name": "fired-trigger-check",
+  "name": "email-notification",
   "version": "1.0.0",
   "description": "You want to check that you've received a certain notification email.",
   "main": "EmailNotification.js",
@@ -8,7 +8,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nigelsdtech/fired-trigger-check.git"
+    "url": "git+https://github.com/nigelsdtech/email-notification.git"
   },
   "keywords": [
     "trigger",
@@ -19,9 +19,9 @@
   "author": "Nigel Stephen D'Souza",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/nigelsdtech/fired-trigger-check/issues"
+    "url": "https://github.com/nigelsdtech/email-notification/issues"
   },
-  "homepage": "https://github.com/nigelsdtech/fired-trigger-check#readme",
+  "homepage": "https://github.com/nigelsdtech/email-notification#readme",
   "dependencies": {
     "gmail-model": "github:nigelsdtech/gmail-model",
     "log4js": "^0.6.x"
