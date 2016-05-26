@@ -23,13 +23,13 @@
   },
   "homepage": "https://github.com/nigelsdtech/email-notification#readme",
   "dependencies": {
-    "gmail-model": "git://github.com/nigelsdtech/gmail-model.git#65d2ada01e60ea5a58d25d1d910e5fda0e8d725c",
+    "gmail-model": "git://github.com/nigelsdtech/gmail-model.git",
     "log4js": "^0.6.x"
   },
   "devDependencies": {
     "chai": "3.5.0",
     "mocha": "2.5.1",
-    "sinon": "1.17.4"
+    "emailjs": "^1.0.2"
   },
   "config": {
     "appName": "email-notification",

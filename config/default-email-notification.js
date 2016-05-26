@@ -15,10 +15,11 @@ module.exports = {
     ssl:       true,
     from:      "Nigel's Raspberry Pi <"+process.env.PERSONAL_EMAIL+">",
     to:        process.env.OB_DISPLAY_NAME+" <"+process.env.OB_EMAIL_ADDRESS+">",
-    subject:   "Support Payments Checker report %s"
+    subject:   "Project: Email Notification Checker %s"
   },
 
   log : {
-    level: 'TRACE'
+    level: 'TRACE',
+    replaceConsole: false
   }
 } 

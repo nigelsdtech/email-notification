@@ -229,10 +229,7 @@ method.getProcessedLabelId = function(params, callback) {
       createIfNotExists: true
     }, function (err,labelId) {
 
-      if (err) {
-        callback(err)
-        return null
-      }
+      if (err) { callback(err); return null }
 
       // Store the retrieved label Id
       self._processedLabelId = labelId;
