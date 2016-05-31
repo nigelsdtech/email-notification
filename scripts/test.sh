@@ -2,7 +2,6 @@
 
 . ~/bin/setup_node_env.sh
 
-appname=${PWD##*/}
+export NODE_APP_INSTANCE="email-notification-test"
 
-mocha test/tests.js \
-	--NODE_APP_INSTANCE="$appname";
+mocha test

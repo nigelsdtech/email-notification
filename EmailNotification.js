@@ -25,6 +25,9 @@ function EmailNotification(params) {
   this._gmailSearchCriteria = params.gmailSearchCriteria
   this._processedLabelName  = params.processedLabelName
 
+  // Load the processed label id if the caller knows it.
+  this._processedLabelId = (params.processedLabelId)? params.processedLabelId : null;
+
   // Setup the google calendar
 
   var gmailParams = {
@@ -47,46 +50,46 @@ var method = EmailNotification.prototype;
 
 
 /**
- * emailNotification.finishProcessing
+ * emailNotification.updateLabels
  *
  * @desc Finish off processing by applying the processed label to the email and/or marking it as read
  *
- * @alias emailNotification.finishProcessing
+ * @alias emailNotification.updateLabels
  * @memberOf! emailNotification(v1)
  *
  * @param  {object=} params - Parameters for request
  * @param  {boolean} applyProcessedLabel
  * @param  {boolean} markAsRead
  * @param  {callback} callback - The callback that handles the response. Returns callback(error,isUpdateRequired)
- * @return {boolean} isUpdateRequired - Indicates whether or not an update was required to have been sent to gmail
+ * @return {boolean} message - The message returned by google
  */
-method.finishProcessing = function(params, callback) {
+method.updateLabels = function(params, callback) {
 
   var self = this
 
-  var params = {}
+  var gParams = {}
   var doUpdate = false;
 
   if (params.applyProcessedLabel) {
-    params.addLabelIds = [self._processedLabelId]
+    gParams.addLabelIds = [self._processedLabelId]
     doUpdate = true
   }
   if (params.markAsRead) {
-    params.removeLabelIds = ['UNREAD']
+    gParams.removeLabelIds = ['UNREAD']
     doUpdate = true
   }
 
-  params.messageId = self._messageId
+  gParams.messageId = self._messageId
 
   if (doUpdate) {
 
-    self._gmail.updateMessage(params, function (err, message) {
-      if (err) {
-        callback(err)
-        return null
-      }
+    self._gmail.updateMessage(gParams, function (err, message) {
+      if (err) { callback(err); return null }
+      callback(null, message)
     });
 
+  } else {
+    callback(null, null)
   }
 }
 
@@ -99,7 +102,7 @@ method.finishProcessing = function(params, callback) {
  * @alias emailNotification.hasBeenProcessed
  * @memberOf! emailNotification(v1)
  *
- * @param  {object=} params - Parameters for request (none currently supported)
+ * @param  {object=} params     - Parameters for request (none currently supported)
  * @param  {callback} callback - The callback that handles the response. Returns callback(error,hasBeenProcessed (boolean))
  * @return {boolean} hasBeenProcessed - Indicates whether or not the notification has already been processed
  */
@@ -107,16 +110,20 @@ method.hasBeenProcessed = function(params, callback) {
 
   var self = this
 
-  // Get the message 
-  self.getMessage(function (message) {
+  self.getMessage(null, function (err, message) {
 
-    // And get the processed labelId
-    self.getLabelId(function (err, labelId) {
+    if (err) { callback(err); return null }
 
-      if (err) {
-        callback(err)
-        return null
-      }
+    // If the message doesn't even exist, we say it hasn't been processed
+    if (!message) {
+      callback(null,false)
+      return null
+    }
+
+    // Otherwise, get the processed labelId
+    self.getProcessedLabelId(null, function (err, labelId) {
+
+      if (err) { callback(err); return null }
 
       // Check if this message has already been processed
       if (message.labelIds.indexOf(labelId) != -1) {
@@ -150,18 +157,22 @@ method.hasBeenReceived = function(params, callback) {
   // Look for the notification
   var self = this
 
-  self._gmail.listMessages({
-    freetextSearch: self._gmailSearchCriteria,
-    maxResults: 1
-  }, function (messages) {
+  // If we have the messageId in memory, we know it's been received
+  if (self._messageId) {
+    callback(null, true)
+    return null
+  }
 
-    if (messages.length == 1) {
-      self._messageId = messages[0].id
-      callback(null, true)
-      return null
-    } else {
+  // Try receiving the messageId and return false if it doesn't exist
+  self.getMessageId(null, function (err, messageId) {
+
+    if (err) { callback(err); return null }
+
+    if (typeof self._messageId === 'undefined') {
+      // No messageId retrieved means we haven't received the message
       callback(null, false)
-      return null
+    } else {
+      callback(null, true)
     }
 
   });
@@ -184,23 +195,74 @@ method.getMessage = function(params, callback) {
 
   var self = this
 
-  // Get the label ID
-  if (typeof self._message === 'undefined') {
+  // Check if it has already been retrieved and stored locally.
+  if (typeof self._message !== 'undefined') {
+    callback(null, self._message);
+    return null
+  }
+
+
+  // Not in memory. Get the message from google.
+  self.getMessageId (null, function (err, messageId) {
+
+    // The message doesn't exist
+    if (!messageId) {
+      callback(null,null)
+      return null;
+    }
 
     self._gmail.getMessage({
-      messageId: messageId
-    }, function (message) {
-
+      messageId: self._messageId
+    }, function (err,message) {
       // Store the retrieved message
+      if (err) { callback(err); return null; }
       self._message = message;
       callback(null, message)
+    })
+  });
 
-    });
+}
 
-  } else {
-    // It has already been retrieved and stored locally.
-    callback(null, self._message)
+/**
+ * emailNotification.getMessageId
+ *
+ * @desc Get the gmail message Id. Doesn't actually load the message
+ *
+ * @alias emailNotification.getMessageId
+ * @memberOf! emailNotification(v1)
+ *
+ * @param  {object=} params - Parameters for request (currently unused)
+ * @param  {callback} callback - The callback that handles the response. Returns callback(error,message (object))
+ * @return {number} id - The gmail message id
+ */
+method.getMessageId = function(params, callback) {
+
+  var self = this
+
+  // Check if we already have it in memory and return that
+  if (typeof self._messageId !== 'undefined') {
+    callback(null, self._messageId);
+    return null
   }
+
+  // Not in memory. Load it.
+  self._gmail.listMessages({
+    freetextSearch: self._gmailSearchCriteria,
+    maxResults: 1
+  }, function (err,response) {
+
+    if (err) { callback(err); return null; }
+
+    if (response.length == 1) {
+      self._messageId = response[0].id
+      callback(null, self._messageId)
+      return null
+    } else {
+      callback(null, null)
+      return null
+    }
+
+  });
 
 }
 
@@ -221,7 +283,7 @@ method.getProcessedLabelId = function(params, callback) {
   var self = this
 
   // Get the label ID
-  if (typeof self._processedLabelId === 'undefined') {
+  if (!self._processedLabelId) {
 
     // It hasn't been saved yet. Get it from google.
     self._gmail.getLabelId({
