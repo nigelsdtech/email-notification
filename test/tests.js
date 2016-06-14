@@ -65,6 +65,7 @@ var gmailPackageOpts = {
 var gmail = new gmailModel(gmailPackageOpts);
 
 
+var timeout = 10000
 
 
 
@@ -73,6 +74,8 @@ var gmail = new gmailModel(gmailPackageOpts);
  */
 
 before(function (done) {
+
+  this.timeout(timeout);
 
   gmail.getLabelId ({
     labelName: processedLabelName,
@@ -91,6 +94,8 @@ before(function (done) {
 
 after(function (done) {
 
+  this.timeout(timeout);
+
   gmail.deleteLabel ({
     labelId: processedLabelId
   }, function (err) {
@@ -108,9 +113,10 @@ after(function (done) {
 
 describe('Retrieves the processed label id', function () {
 
+  this.timeout(timeout);
+
 
   it('should retrieve the id for a label called ' + processedLabelName, function (done) {
-    this.timeout(5000);
     en.getProcessedLabelId(null, function(err,labelId) {
         labelId.should.equal(processedLabelId);
         done();
@@ -123,7 +129,7 @@ describe('Retrieves the processed label id', function () {
 
 describe('Correctly identifies an email notification', function () {
 
-  this.timeout('5000');
+  this.timeout(timeout);
 
   var en,
       processedLabelId,
@@ -232,7 +238,7 @@ describe('Correctly identifies an email notification', function () {
 
 describe('Testing a non-received email notification', function () {
 
-  this.timeout('5000');
+  this.timeout(timeout);
 
   var en,
       processedLabelId;
