@@ -80,7 +80,7 @@ before(function (done) {
   }, function (err, labelId) {
     if (err) throw new Error(err);
     processedLabelId= labelId
-    done()
+    done();
   });
 })
 
