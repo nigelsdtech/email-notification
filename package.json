@@ -16,14 +16,16 @@
     "email",
     "notification"
   ],
-  "author": "Nigel Stephen D'Souza",
+  "author": {
+    "name": "Nigel Stephen D'Souza"
+  },
   "license": "ISC",
   "bugs": {
     "url": "https://github.com/nigelsdtech/email-notification/issues"
   },
   "homepage": "https://github.com/nigelsdtech/email-notification#readme",
   "dependencies": {
-    "gmail-model": "git://github.com/nigelsdtech/gmail-model.git#",
+    "gmail-model": "git://github.com/nigelsdtech/gmail-model.git",
     "inherits": "2.0.1",
     "log4js": "^0.6.x"
   },
@@ -34,5 +36,12 @@
   "config": {
     "appName": "email-notification",
     "googleAuthScopes": "https://www.googleapis.com/auth/gmail.modify"
-  }
+  },
+  "gitHead": "03202931de2774d061d260173ecc96e1135d629c",
+  "readme": "You want to check that some sort of trigger has fired. For example, a certain email has been received that causes your app to run a script.\n",
+  "readmeFilename": "README.md",
+  "_id": "email-notification@1.0.0",
+  "_shasum": "a5e3c5440ecbb28e0eedd8f3ee67e4256b351ac9",
+  "_from": "git://github.com/nigelsdtech/email-notification.git#03202931de2774d061d260173ecc96e1135d629c",
+  "_resolved": "git://github.com/nigelsdtech/email-notification.git#03202931de2774d061d260173ecc96e1135d629c"
 }

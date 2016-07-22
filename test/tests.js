@@ -16,25 +16,21 @@ log.setLevel(cfg.log.level);
 
 
 var gmailParams = {
-    mailbox: {
-      name:   cfg.mailbox.name,
-      userId: cfg.mailbox.userId
-    },
-    auth: {
-      scopes:           cfg.auth.scopes,
-      tokenFile:        cfg.auth.tokenFile,
-      tokenFileDir:     cfg.auth.tokenFileDir,
-      clientSecretFile: cfg.auth.clientSecretFile
-    }
+  clientSecretFile: cfg.auth.clientSecretFile,
+  googleScopes:     cfg.auth.scopes,
+  name:             cfg.mailbox.name,
+  tokenDir:         cfg.auth.tokenFileDir,
+  tokenFile:        cfg.auth.tokenFile,
+  userId:           cfg.mailbox.userId
 }
 
 var processedLabelName  = cfg.appName + '-processed',
-    processedLabelId    = null,
-    emailFrom           = cfg.email.from,
-    emailFromAddress    = cfg.email.fromAddress,
-    emailTo             = cfg.email.to,
-    emailSubject        = cfg.email.subject,
-    gmailSearchCriteria = 'is:unread newer_than:1d from:"' + emailFromAddress + '" subject:"' + emailSubject + '"';
+  processedLabelId    = null,
+  emailFrom           = cfg.email.from,
+  emailFromAddress    = cfg.email.fromAddress,
+  emailTo             = cfg.email.to,
+  emailSubject        = cfg.email.subject,
+  gmailSearchCriteria = 'is:unread newer_than:1d from:"' + emailFromAddress + '" subject:"' + emailSubject + '"';
 
 
 
@@ -50,14 +46,12 @@ var en = new EmailNotification({
 
 
 var gmailPackageOpts = {
-  name             : gmailParams.mailbox.name,
-  userId           : gmailParams.mailbox.userId,
-  googleScopes     : gmailParams.auth.scopes,
-  tokenFile        : gmailParams.auth.tokenFile,
-  tokenDir         : gmailParams.auth.tokenFileDir,
-  clientSecretFile : gmailParams.auth.clientSecretFile,
-  log4js           : log4js,
-  logLevel         : cfg.log.level,
+  name             : gmailParams.name,
+  userId           : gmailParams.userId,
+  googleScopes     : gmailParams.googleScopes,
+  tokenFile        : gmailParams.tokenFile,
+  tokenDir         : gmailParams.tokenDir,
+  clientSecretFile : gmailParams.clientSecretFile,
   user             : cfg.email.user,
   appSpecificPassword  : cfg.email.password
 }
@@ -193,6 +187,9 @@ describe('Correctly identifies an email notification', function () {
       done();
     });
   });
+
+  it('should use the cache when getting the message a subsequent time');
+  it('should refresh the message not using the cache when directed to do so');
 
   it('should apply the processed label and mark the message as read', function (done) {
     en.updateLabels({

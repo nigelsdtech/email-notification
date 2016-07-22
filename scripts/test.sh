@@ -4,4 +4,4 @@
 
 export NODE_APP_INSTANCE="email-notification-test"
 
-mocha test
+mocha -b test

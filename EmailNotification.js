@@ -18,6 +18,17 @@ var _gmail,
 /**
  * Email Notification constructor.
  * @param {object} params Params to be passed in
+ * @param {object} params.gmail
+ * @param {string} params.gmail.clientSecretFile
+ * @param {string} params.gmail.googleScopes
+ * @param {string} params.gmail.name
+ * @param {string} params.gmail.tokenDir
+ * @param {string} params.gmail.tokenFile
+ * @param {string} params.gmail.userId
+ * @param {string} params.gmailSearchCriteria
+ * @param {string} params.processedLabelName
+ * @param {string} params.processedLabelId (optional)
+ *
  * @constructor
  */
 function EmailNotification(params) {
@@ -28,21 +39,11 @@ function EmailNotification(params) {
   // Load the processed label id if the caller knows it.
   this._processedLabelId = (params.processedLabelId)? params.processedLabelId : null;
 
-  // Setup the google calendar
+  // Setup the google mailbox
+  this._gmail = new gmailModel(params.gmail)
 
-  var gmailParams = {
-    name             : params.gmail.mailbox.name,
-    userId           : params.gmail.mailbox.userId,
-    googleScopes     : params.gmail.auth.scopes,
-    tokenFile        : params.gmail.auth.tokenFile,
-    tokenDir         : params.gmail.auth.tokenFileDir,
-    clientSecretFile : params.gmail.auth.clientSecretFile,
-    log4js           : params.log4js,
-    logLevel         : params.log.level
-  }
+  this.flushCache();
 
-
-  this._gmail = new gmailModel(gmailParams);
 }
 
 
@@ -60,8 +61,8 @@ var method = EmailNotification.prototype;
  * @param  {object=} params - Parameters for request
  * @param  {boolean} applyProcessedLabel
  * @param  {boolean} markAsRead
- * @param  {callback} callback - The callback that handles the response. Returns callback(error,isUpdateRequired)
- * @return {boolean} message - The message returned by google
+ * @param  {callback} callback - The callback that handles the response. Returns callback(error,message)
+ * @return {object} message - The message returned by google (would be null if no update was required)
  */
 method.updateLabels = function(params, callback) {
 
@@ -158,7 +159,7 @@ method.hasBeenReceived = function(params, callback) {
   var self = this
 
   // If we have the messageId in memory, we know it's been received
-  if (self._messageId) {
+  if (self._messageId != 'empty') {
     callback(null, true)
     return null
   }
@@ -168,7 +169,7 @@ method.hasBeenReceived = function(params, callback) {
 
     if (err) { callback(err); return null }
 
-    if (typeof self._messageId === 'undefined') {
+    if (self._messageId == 'empty') {
       // No messageId retrieved means we haven't received the message
       callback(null, false)
     } else {
@@ -177,6 +178,22 @@ method.hasBeenReceived = function(params, callback) {
 
   });
 }
+
+/**
+ * emailNotification.flushCache
+ *
+ * @desc Flush local cache
+ *
+ * @alias emailNotification.flushCache
+ * @memberOf! emailNotification(v1)
+ *
+ * @param  {object=} params - Parameters for request (currently unused)
+ */
+method.flushCache = function(params, callback) {
+  this._messageId = "empty"
+  this._message   = "empty"
+}
+
 
 
 /**
@@ -196,7 +213,7 @@ method.getMessage = function(params, callback) {
   var self = this
 
   // Check if it has already been retrieved and stored locally.
-  if (typeof self._message !== 'undefined') {
+  if (self._message != 'empty') {
     callback(null, self._message);
     return null
   }
@@ -240,7 +257,7 @@ method.getMessageId = function(params, callback) {
   var self = this
 
   // Check if we already have it in memory and return that
-  if (typeof self._messageId !== 'undefined') {
+  if (self._messageId != 'empty') {
     callback(null, self._messageId);
     return null
   }
