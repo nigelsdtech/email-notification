@@ -4,15 +4,7 @@ const chai              = require('chai'),
       cfg               = require('config'),
       EmailNotification = require('../EmailNotification.js'),
       gmailModel        = require('gmail-model'),
-      log4js            = require('log4js'),
       should            = require('chai').should();
-
-// logs
-
-log4js.configure(cfg.log.log4jsConfigs);
-
-var log = log4js.getLogger(cfg.log.appName);
-log.setLevel(cfg.log.level);
 
 
 var gmailParams = {
@@ -37,11 +29,7 @@ var processedLabelName  = cfg.appName + '-processed',
 var en = new EmailNotification({
   gmailSearchCriteria: gmailSearchCriteria,
   processedLabelName: processedLabelName,
-  gmail: gmailParams,
-  log4js: log4js,
-  log: {
-    level : cfg.log.level
-  }
+  gmail: gmailParams
 });
 
 
@@ -160,11 +148,7 @@ describe('Correctly identifies an email notification', function () {
            gmailSearchCriteria: gmailSearchCriteria,
            processedLabelName: processedLabelName,
            processedLabelId: processedLabelId,
-           gmail: gmailParams,
-           log4js: log4js,
-           log: {
-             level : cfg.log.level
-           }
+           gmail: gmailParams
         });
 
         done();
@@ -214,8 +198,6 @@ describe('Correctly identifies an email notification', function () {
 
       if (err) throw new Error(err);
 
-      log.debug('Cleanup job retrieved %s messages having searched for criteria - %s', messages.length, gmailSearchCriteria);
-
       var messageIds = [];
 
       for (var i = 0 ; i < messages.length; i++) {
@@ -259,11 +241,7 @@ describe('Testing a non-received email notification', function () {
          gmailSearchCriteria: 'subject:"Dud email that couldn\'t possibly have been received" is:' + processedLabelName,
          processedLabelName: processedLabelName,
          processedLabelId: processedLabelId,
-         gmail: gmailParams,
-         log4js: log4js,
-         log: {
-           level : cfg.log.level
-         }
+         gmail: gmailParams
       });
 
       done();
