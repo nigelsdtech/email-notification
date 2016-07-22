@@ -2,6 +2,8 @@
 
 . ~/bin/setup_node_env.sh
 
-export NODE_APP_INSTANCE="email-notification-test"
+appname=${PWD##*/}
+export NODE_APP_INSTANCE="${appname}"
+export NODE_ENV="test"
 
-mocha -b test
+mocha -b --check-leaks --recursive test
