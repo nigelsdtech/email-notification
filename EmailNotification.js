@@ -1,6 +1,6 @@
 'use strict';
 
-const gmailModel = require('gmail-model');
+var gmailModel = require('gmail-model');
 
 /**
  * A module for checking that a notification email has been received.

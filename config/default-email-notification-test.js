@@ -27,4 +27,4 @@ module.exports = {
     level: 'INFO',
     replaceConsole: false
   }
-} 
+}
