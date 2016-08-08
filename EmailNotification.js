@@ -51,6 +51,32 @@ var method = EmailNotification.prototype;
 
 
 /**
+ * emailNotification.trash
+ *
+ * @desc Finish off processing by deleting the messages
+ *
+ * @alias emailNotification.trash
+ * @memberOf! emailNotification(v1)
+ *
+ * @param  {object=} params - Parameters for request (currently unused)
+ * @param  {callback} callback - The callback that handles the response. Returns callback(error). If null, the proc will run asyncronously.
+ */
+method.trash = function(params, callback) {
+
+  var self = this
+
+  if (!callback) {
+    callback = function() {return null}
+  }
+
+  self._gmail.trashMessages({
+    messageIds: [self._messageId]
+  }, callback);
+
+}
+
+
+/**
  * emailNotification.updateLabels
  *
  * @desc Finish off processing by applying the processed label to the email and/or marking it as read

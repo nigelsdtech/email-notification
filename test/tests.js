@@ -175,43 +175,17 @@ describe('Correctly identifies an email notification', function () {
   it('should use the cache when getting the message a subsequent time');
   it('should refresh the message not using the cache when directed to do so');
 
-  it('should apply the processed label and mark the message as read', function (done) {
-    en.updateLabels({
-      applyProcessedLabel: true,
-      markAsRead: true
-    }, function(err, message) {
+  it('should trash the notification', function (done) {
+    en.trash(null, function(err, resps) {
+
       if (err) throw new Error(err);
 
-      message.should.have.property('labelIds');
-      message.labelIds.should.include(processedLabelId);
-      message.labelIds.should.not.include('UNREAD');
+      resps[0].should.have.property('labelIds');
+      resps[0].labelIds.should.include('TRASH');
       done();
     });
   });
 
-  // Cleanup
-  after( function (done) {
-
-    gmail.listMessages({
-      freetextSearch: gmailSearchCriteria.replace('is:unread','')
-    }, function (err, messages) {
-
-      if (err) throw new Error(err);
-
-      var messageIds = [];
-
-      for (var i = 0 ; i < messages.length; i++) {
-        messageIds.push(messages[i].id)
-      }
-
-      gmail.trashMessages({
-        messageIds: messageIds
-      }, function(err,responses) {
-        if (err) throw new Error(err);
-        done();
-      });
-    });
-  });
 
 });
 
