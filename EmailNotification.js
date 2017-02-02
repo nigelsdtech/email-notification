@@ -26,6 +26,7 @@ var _gmail,
  * @param {string} params.gmail.tokenFile
  * @param {string} params.gmail.userId
  * @param {string} params.gmailSearchCriteria
+ * @param {string} params.messageRetFields - Subset of fields on the email message (optional)
  * @param {string} params.processedLabelName
  * @param {string} params.processedLabelId (optional)
  *
@@ -41,6 +42,14 @@ function EmailNotification(params) {
 
   // Setup the google mailbox
   this._gmail = new gmailModel(params.gmail)
+
+  // Setup retFields to be retrieved blindly for all messages
+  // Ensure we're also pulling message Id and labels as these are always needed
+  if (params.messageRetFields) {
+    this._messageRetFields = params.messageRetFields
+    this._messageRetFields.push('id')
+    this._messageRetFields.push('labelIds')
+  }
 
   this.flushCache();
 
@@ -58,7 +67,8 @@ var method = EmailNotification.prototype;
  * @alias emailNotification.trash
  * @memberOf! emailNotification(v1)
  *
- * @param  {object=} params - Parameters for request (currently unused)
+ * @param  {object=} params - Parameters for request
+ * @param  {string[]} params.retFields - Optional. The specific resource fields to return in the response.
  * @param  {callback} callback - The callback that handles the response. Returns callback(error). If null, the proc will run asyncronously.
  */
 method.trash = function(params, callback) {
@@ -69,9 +79,13 @@ method.trash = function(params, callback) {
     callback = function() {return null}
   }
 
-  self._gmail.trashMessages({
+  var gParams = {
     messageIds: [self._messageId]
-  }, callback);
+  }
+
+  if (params && params.hasOwnProperty('retFields')) gParams.retFields = params.retFields;
+
+  self._gmail.trashMessages(gParams, callback);
 
 }
 
@@ -230,7 +244,8 @@ method.flushCache = function(params, callback) {
  * @alias emailNotification.getMessage
  * @memberOf! emailNotification(v1)
  *
- * @param  {object=} params - Parameters for request (currently unused)
+ * @param  {object}   params - Parameters for request
+ * @param  {string[]} params.retFields - Optional. The specific resource fields to return in the response.
  * @param  {callback} callback - The callback that handles the response. Returns callback(error,message (object))
  * @return {string} message - The gmail message resource
  */
@@ -254,9 +269,13 @@ method.getMessage = function(params, callback) {
       return null;
     }
 
-    self._gmail.getMessage({
+    var gParams = {
       messageId: self._messageId
-    }, function (err,message) {
+    }
+
+    if (self._messageRetFields) { gParams.retFields = self._messageRetFields } else if (params && params.hasOwnProperty('retFields')) gParams.fields = params.retFields;
+
+    self._gmail.getMessage(gParams, function (err,message) {
       // Store the retrieved message
       if (err) { callback(err); return null; }
       self._message = message;

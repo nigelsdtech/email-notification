@@ -18,6 +18,7 @@ var gmailParams = {
 
 var processedLabelName  = cfg.appName + '-processed',
   processedLabelId    = null,
+  emailBody           = 'This is some content',
   emailFrom           = cfg.email.from,
   emailFromAddress    = cfg.email.fromAddress,
   emailTo             = cfg.email.to,
@@ -114,9 +115,8 @@ describe('Correctly identifies an email notification', function () {
   this.timeout(timeout);
 
   var en,
-      processedLabelId,
-      newMessageId;
-
+      newMessageId,
+      processedLabelId;
 
   before(function (done) {
 
@@ -136,7 +136,7 @@ describe('Correctly identifies an email notification', function () {
         from:    emailFrom,
         to:      emailTo,
         subject: emailSubject,
-        body:    'This is some content',
+        body:    emailBody
       }, function (err, response) {
 
         if (err) throw new Error(err);
@@ -172,8 +172,42 @@ describe('Correctly identifies an email notification', function () {
     });
   });
 
+  it('should return the messageId', function (done) {
+    en.getMessageId(null, function(err, messageId) {
+      if (err) throw new Error(err);
+      messageId.should.be.a('string');
+      done();
+    });
+  });
+
+  it('should return the message', function (done) {
+    en.getMessage(null, function(err, message) {
+      if (err) throw new Error(err);
+      message.snippet.should.equal(emailBody)
+      done();
+    });
+  });
+
   it('should use the cache when getting the message a subsequent time');
-  it('should refresh the message not using the cache when directed to do so');
+  it('should refresh the message when the cache is flushed');
+
+  it('should get only a subset of message data when retFields are passed in', function (done) {
+    var en = new EmailNotification({
+      gmailSearchCriteria: gmailSearchCriteria,
+      processedLabelName: processedLabelName,
+      gmail: gmailParams,
+      messageRetFields: ["snippet"]
+    });
+
+    en.getMessage(null, function(err, message) {
+      if (err) throw new Error(err);
+
+      // Check for the snippet (which is the specified retField)
+      // Also check for the id and labelIds (which should have been pulled in by default
+      message.should.have.all.keys(['id','labelIds','snippet']);
+      done();
+    });
+  });
 
   it('should trash the notification', function (done) {
     en.trash(null, function(err, resps) {
@@ -181,6 +215,17 @@ describe('Correctly identifies an email notification', function () {
       if (err) throw new Error(err);
 
       resps[0].should.have.property('labelIds');
+      resps[0].labelIds.should.include('TRASH');
+      done();
+    });
+  });
+
+  it('should trash the notification and receive a subset of the message data', function (done) {
+    en.trash({retFields: ["labelIds","snippet"]}, function(err, resps) {
+
+      if (err) throw new Error(err);
+
+      resps[0].should.have.all.keys(['labelIds','snippet']);
       resps[0].labelIds.should.include('TRASH');
       done();
     });
