@@ -33,10 +33,6 @@
     "chai": "3.5.0",
     "mocha": "2.5.1"
   },
-  "config": {
-    "appName": "email-notification",
-    "googleAuthScopes": "https://www.googleapis.com/auth/gmail.modify"
-  },
   "gitHead": "03202931de2774d061d260173ecc96e1135d629c",
   "readme": "You want to check that some sort of trigger has fired. For example, a certain email has been received that causes your app to run a script.\n",
   "readmeFilename": "README.md",
