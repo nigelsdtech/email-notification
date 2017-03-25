@@ -30,6 +30,7 @@ var
  * @param {string}   params.gmail.tokenFile
  * @param {string}   params.gmail.userId
  * @param {string}   params.gmailSearchCriteria
+ * @param {integer]} params.maxResults - Maximum number of results to be returned
  * @param {string[]} params.metaDataHeaders - which message headers to return
  * @param {string}   params.processedLabelName
  * @param {string}   params.processedLabelId (optional)
@@ -41,6 +42,7 @@ function EmailNotification(params) {
 
   this._gmailSearchCriteria = params.gmailSearchCriteria
   this._processedLabelName  = params.processedLabelName
+  this._maxResults          = params.maxResults
 
   // Load the processed label id if the caller knows it.
   this._processedLabelId = (params.processedLabelId)? params.processedLabelId : null;
@@ -158,10 +160,14 @@ method.getMessageIds = function(params, callback) {
     return null
   }
 
-  // Not in memory. Load it.
-  self._gmail.listMessages({
+  var gParams = {
     freetextSearch: self._gmailSearchCriteria
-  }, function (err,responses) {
+  }
+
+  if (self._maxResults) gParams.maxResults = self._maxResults
+
+  // Not in memory. Load it.
+  self._gmail.listMessages(gParams, function (err,responses) {
 
     if (err) { callback(err); return null; }
 
