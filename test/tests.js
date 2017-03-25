@@ -16,7 +16,7 @@ var gmailParams = {
   userId:           cfg.mailbox.userId
 }
 
-var processedLabelName  = cfg.appName + '-processed',
+var processedLabelName  = cfg.appName + '-' + process.env.NODE_ENV + '-processed',
   processedLabelId    = null,
   emailBody           = 'This is some content',
   emailFrom           = cfg.email.from,
@@ -48,7 +48,7 @@ var gmailPackageOpts = {
 var gmail = new gmailModel(gmailPackageOpts);
 
 
-var timeout = 10000
+var timeout = 20000
 
 
 
@@ -110,7 +110,7 @@ describe('Retrieves the processed label id', function () {
 });
 
 
-describe('Correctly identifies an email notification', function () {
+describe('Receiving a single email notification,', function () {
 
   this.timeout(timeout);
 
@@ -146,6 +146,9 @@ describe('Correctly identifies an email notification', function () {
         // Create the email notification object
         en = new EmailNotification({
            gmailSearchCriteria: gmailSearchCriteria,
+           retFields: ['id','labelIds','payload(headers)','snippet'],
+           format:    'metadata',
+           metadataHeaders: 'subject',
            processedLabelName: processedLabelName,
            processedLabelId: processedLabelId,
            gmail: gmailParams
@@ -165,9 +168,9 @@ describe('Correctly identifies an email notification', function () {
   });
 
   it('should recognize the email hasn\'t been processed yet', function (done) {
-    en.hasBeenProcessed(null, function(err, hasBeenProcessed) {
+    en.allHaveBeenProcessed(null, function(err, allHaveBeenProcessed) {
       if (err) throw new Error(err);
-      hasBeenProcessed.should.equal(false);
+      allHaveBeenProcessed.should.equal(false);
       done();
     });
   });
@@ -191,20 +194,16 @@ describe('Correctly identifies an email notification', function () {
   it('should use the cache when getting the message a subsequent time');
   it('should refresh the message when the cache is flushed');
 
-  it('should get only a subset of message data when retFields are passed in', function (done) {
-    var en = new EmailNotification({
-      gmailSearchCriteria: gmailSearchCriteria,
-      processedLabelName: processedLabelName,
-      gmail: gmailParams,
-      messageRetFields: ["snippet"]
-    });
+  it('should apply the processed label and mark as read', function (done) {
+    en.updateLabels({
+      applyProcessedLabel: true,
+      markAsRead: true
+    }, function(err, resps) {
 
-    en.getMessage(null, function(err, message) {
       if (err) throw new Error(err);
 
-      // Check for the snippet (which is the specified retField)
-      // Also check for the id and labelIds (which should have been pulled in by default
-      message.should.have.all.keys(['id','labelIds','snippet']);
+      //The batchModify call returns an empty response
+      should.not.exist(resps)
       done();
     });
   });
@@ -214,25 +213,16 @@ describe('Correctly identifies an email notification', function () {
 
       if (err) throw new Error(err);
 
-      resps[0].should.have.property('labelIds');
-      resps[0].labelIds.should.include('TRASH');
+      for (var i = 0; i < resps.length; i++) {
+        resps[i].labelIds.should.include('TRASH');
+      }
       done();
     });
   });
-
-  it('should trash the notification and receive a subset of the message data', function (done) {
-    en.trash({retFields: ["labelIds","snippet"]}, function(err, resps) {
-
-      if (err) throw new Error(err);
-
-      resps[0].should.have.all.keys(['labelIds','snippet']);
-      resps[0].labelIds.should.include('TRASH');
-      done();
-    });
-  });
-
 
 });
+
+
 
 describe('Testing a non-received email notification', function () {
 
@@ -276,9 +266,9 @@ describe('Testing a non-received email notification', function () {
   });
 
   it('should recognize the email hasn\'t been processed yet', function (done) {
-    en.hasBeenProcessed(null, function(err, hasBeenProcessed) {
+    en.allHaveBeenProcessed(null, function(err, allHaveBeenProcessed) {
       if (err) throw new Error(err);
-      hasBeenProcessed.should.equal(false);
+      allHaveBeenProcessed.should.equal(false);
       done();
     });
   });
