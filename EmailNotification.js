@@ -422,8 +422,9 @@ method.trash = function(params, callback) {
  * @memberOf! emailNotification(v1)
  *
  * @param  {object}  params - Parameters for request
- * @param  {boolean} applyProcessedLabel
- * @param  {boolean} markAsRead
+ * @param  {boolean} params.applyProcessedLabel
+ * @param  {boolean} params.markAsRead
+ * @param  {boolean} params.trash - trash the message (remove from inbox and apply the trash label)
  * @param  {callback} callback - The callback that handles the response. Returns callback(error,message)
  * @return {object[]} message - The message returned by google (would be null if no update was required)
  */
@@ -443,6 +444,11 @@ method.updateLabels = function(params, callback) {
   }
   if (params.markAsRead) {
     gParams.removeLabelIds = ['UNREAD']
+    doUpdate = true
+  }
+  if (params.trash) {
+    gParams.removeLabelIds = ['INBOX']
+    gParams.addLabelIds    = ['TRASH']
     doUpdate = true
   }
 
