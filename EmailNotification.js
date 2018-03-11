@@ -32,7 +32,7 @@ var
  * @param {string}   params.gmail.userId
  * @param {string}   params.gmailSearchCriteria
  * @param {integer}  params.maxResults - Maximum number of results to be returned
- * @param {string[]} params.metaDataHeaders - which message headers to return
+ * @param {string[]} params.metadataHeaders - which message headers to return
  * @param {string}   params.processedLabelName
  * @param {string}   params.processedLabelId (optional)
  * @param {string}   params.retFields - message fields to be returned for each message
