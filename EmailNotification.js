@@ -272,9 +272,9 @@ method.allHaveBeenProcessed = function(params, callback) {
 
     if (err) { callback(err); return null }
 
-    // If the messages don't even exist, we say it hasn't been processed
+    // No messages exist. Consider all as having been processed.
     if (!messages) {
-      callback(null,false)
+      callback(null,true)
       return null
     }
 
